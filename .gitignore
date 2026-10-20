@@ -1,0 +1,23 @@
+# Generated data and local work
+output/
+outputs/
+work/
+*.csv
+*.jsonl
+*.pdf
+*.zip
+*.sqlite
+*.sqlite-*
+
+# Python and OS files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.DS_Store
+
+# Local credentials
+.env
+.env.*
+!.env.example

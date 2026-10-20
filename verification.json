@@ -1,0 +1,69 @@
+{
+  "build_script_sha256": "2a39665157c2c1d8032808ea1307e3be7fd68b879443ea75c09f3ccf7457e386",
+  "checks": {
+    "all_company_flow_totals_counts_and_coverage_match_source": true,
+    "all_detected_conflicts_location_variants_and_unknown_ids_reported": true,
+    "all_payment_endpoints_and_source_records_preserved": true,
+    "all_person_links_preserved_in_profiles_or_unknown_company_issues": true,
+    "all_top_n_rankings_match_and_exclude_self_payments": true,
+    "all_unique_company_ids_and_raw_variants_preserved": true,
+    "conflicting_companies_have_no_authoritative_attributes_or_groups": true,
+    "every_group_membership_and_member_scoped_metric_matches_source": true,
+    "every_payment_edge_matches_independent_source_aggregation": true,
+    "multiple_person_links_do_not_multiply_payments": true,
+    "payment_duplicates_retained_and_self_flags_correct": true,
+    "revenue_sums_and_coverage_match_without_consolidation_claim": true,
+    "source_hashes_and_summary_totals_match_independent_controls": true
+  },
+  "counts": {
+    "companies": 85514,
+    "company_profiles_with_multiple_persons": 105,
+    "company_source_rows": 85525,
+    "conflicting_company_ids": [
+      "U_428697"
+    ],
+    "group_members": 85513,
+    "groups": 18091,
+    "payment_edges": 1380568,
+    "payment_endpoint_ids": 178159,
+    "person_source_rows": 12514,
+    "persons_with_location_variants": 258,
+    "unknown_payment_endpoint_ids": 114552
+  },
+  "independent_payment_totals": {
+    "amount": "55991235586000",
+    "count": 24515786,
+    "rows": 1380585,
+    "self_amount": "45721727331000",
+    "self_count": 3258858,
+    "self_rows": 27406
+  },
+  "issue_counts": {
+    "company_conflict": 1,
+    "fts_countries_with_false_flag": 206,
+    "fts_flag_without_countries": 224,
+    "identical_payment_rows": 1,
+    "payment_unknown_company": 114552,
+    "person_location_variants": 258,
+    "person_unknown_company": 7885
+  },
+  "limitations": [
+    "This verification targets the supplied dataset, whose payment numbers are valid and integral.",
+    "Synthetic edge cases, including fractional precision and invalid/missing values, are covered by the delivered unit tests."
+  ],
+  "method": "Independent CSV reads and fresh SQLite index; build_profiles.py was not imported.",
+  "output_sha256": {
+    "company_profiles.jsonl": "22deb2e7b264d659296247d454f43f6d081210af3de64b669e8d45eb65722d06",
+    "data_issues.jsonl": "8b1cf83d63d1a8a2d7c95e9f5aa69819fb5e1dc0ed7a117f7b0eb0ed620d23aa",
+    "group_profiles.jsonl": "5097c8a8d0d4e37c6758c812a0f0187f0ab3b1b0855ff29f7431edee17ddad69",
+    "payment_edges.jsonl": "300211a9c0d0c581fd5ae68f06daadea0b091e06c2495dbb03fe81a9422c99f5",
+    "summary.json": "b7eac718b66f812ef233cc4f944042a9488368981be3cd86fdcaf4334ff98dab"
+  },
+  "result": "passed",
+  "scope": "All supplied input rows and all five generated output files.",
+  "source_sha256": {
+    "df_Fid_Uid_link_hack.csv": "3d9c718e2a87304f48bbc7447607116bb8e4bd61dded70b0a1d0558f086a1b58",
+    "df_Uid_data_hack.csv": "cb48983806ce7ca0ae045a40c9627ccbe47cc72bfb54058db04df2386da4a983",
+    "df_Uid_payment_hack.csv": "30095f75bead1a1dac0d7232b0da09a326b7ef643ee3b77b36ad3b4458a1cab3"
+  }
+}
