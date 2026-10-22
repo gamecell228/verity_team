@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Альфа-Бизнес — Персонализированные сводки новостей и рекомендации</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        alfa: {
+                            red: '#EF3124',
+                            redHover: '#D9261A',
+                            bg: '#F3F4F6',
+                            sidebar: '#F3F4F6',
+                            dark: '#111827',
+                            grayText: '#6B7280',
+                            border: '#E5E7EB'
+                        }
+                    },
+                    boxShadow: {
+                        'alfa-card': '0 2px 10px rgba(17, 24, 39, 0.04)',
+                        'alfa-hover': '0 8px 24px rgba(17, 24, 39, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F3F4F6;
+            color: #111827;
+            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+
+        /* Анимация прыжка с задержкой перед прыжком */
+        @keyframes verityJump {
+            0%, 30%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-40px);
+            }
+            70% {
+                transform: translateY(0);
+            }
+        }
+        .verity-jump {
+            animation: verityJump 1.6s ease-in-out infinite;
+        }
+
+        /* Плавное раскрытие аккордеона без скачков скролла */
+        .accordion-grid {
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            transition: grid-template-rows 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
+        }
+        .accordion-grid.open {
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+        .accordion-inner {
+            overflow: hidden;
+        }
+
+        .step-content-box {
+            transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+        #mainScrollContainer {
+            overflow-anchor: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col lg:flex-row antialiased selection:bg-red-100 selection:text-alfa-red" onclick="closeVeritySpeech(event)">
+
+    <!-- ЛЕВОЕ МЕНЮ АЛЬФА-БИЗНЕС (Неподвижное на десктопе) -->
+    <aside class="w-full lg:w-[248px] bg-[#F3F4F6] border-b lg:border-b-0 lg:border-r border-gray-200/80 flex flex-col justify-between shrink-0 select-none lg:h-screen lg:overflow-y-auto">
+        <div class="p-4">
+            <!-- Логотип -->
+            <div class="flex items-center justify-between lg:justify-start gap-3 px-2 pt-1 pb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-alfa-red flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                        <span class="underline decoration-2 underline-offset-4">А</span>
+                    </div>
+                    <span class="font-bold text-[17px] tracking-tight text-gray-900">Альфа-Бизнес</span>
+                </div>
+                <span class="lg:hidden text-xs font-medium px-2.5 py-1 bg-white rounded-full text-gray-600 shadow-sm">Меню</span>
+            </div>
+
+            <!-- Кнопка Новый платёж -->
+            <button onclick="showToast('Новый платёж', 'Открытие формы создания рублёвого или валютного платежа')" class="w-full bg-white hover:bg-gray-50 active:scale-[0.99] transition-all rounded-xl py-2.5 px-3.5 flex items-center gap-3 shadow-alfa-card border border-gray-100 mb-4">
+                <span class="w-5 h-5 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-bold">+</span>
+                <span class="text-[13.5px] font-semibold text-gray-900">Новый платёж</span>
+            </button>
+
+            <!-- Основная навигация -->
+            <nav class="space-y-0.5 text-[13.5px] font-medium text-gray-700">
+                <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Платежи в работе
+                </a>
+                <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Импорт платежей
+                </a>
+                <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Выписка
+                </a>
+                <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    Счета
+                </a>
+                <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Контрагенты
+                </a>
+            </nav>
+
+            <!-- Раздел МОИ СЕРВИСЫ -->
+            <div class="mt-6 pt-2">
+                <div class="flex items-center justify-between px-3 mb-2">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Мои сервисы</span>
+                    <span class="text-gray-400 text-base leading-none">+</span>
+                </div>
+                <nav class="space-y-0.5 text-[13.5px] font-medium text-gray-700">
+                    <!-- АКТИВНЫЙ МИКРОСЕРВИС -->
+                    <a href="#" onclick="return false" class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white text-gray-900 font-semibold shadow-alfa-card border border-red-200/80">
+                        <span class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-alfa-red animate-pulse"></span>
+                            <span>Новостной советник</span>
+                        </span>
+                        <span class="px-1.5 py-0.5 text-[10px] font-bold bg-alfa-red text-white rounded-full">5</span>
+                    </a>
+
+                    <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        Эквайринг и касса
+                    </a>
+                    <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                        Зарплатный проект
+                    </a>
+                    <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>
+                        Карты
+                    </a>
+                    <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/></svg>
+                        Документооборот
+                    </a>
+                    <a href="#" onclick="return false" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-200/60 transition-colors">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        Госзакупки
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- НИЖНЯЯ ЗОНА С VERITY И КНОПКАМИ («ПОЛ» НАД ОКНАМИ СЕРВИСОВ И КЭШБЭКА) -->
+        <div class="hidden lg:block p-4 pt-0 mt-auto">
+            <!-- Персонаж Verity с символами, повернутыми на 90 градусов -->
+            <div class="relative flex flex-col items-center pb-3">
+                <div id="verityChar" onclick="toggleVeritySpeech(event)" class="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform verity-jump relative z-10" title="Hey it's me it's Verity">
+                    <!-- Символы : ) повернуты на 90 градусов -->
+                    <span class="text-black font-extrabold text-2xl tracking-tighter select-none leading-none" style="transform: rotate(90deg); display: inline-block;">:)</span>
+                    <!-- Облачко с текстом -->
+                    <div id="veritySpeechBubble" class="absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-2xl whitespace-nowrap hidden z-30 pointer-events-none">
+                        Hey it`s me it`s Verity
+                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-gray-900 rotate-45"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Два нижних окна («Все сервисы и продукты» и «Кэшбэк и привилегии») -->
+            <div class="grid grid-cols-2 gap-2">
+                <div onclick="showToast('Все сервисы и продукты', 'Переход в каталог продуктов Альфа-Бизнес')" class="bg-white p-3 rounded-2xl shadow-alfa-card border border-gray-100 cursor-pointer hover:border-gray-300 transition">
+                    <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-2 text-xs font-bold">🛒</div>
+                    <div class="text-[11px] font-medium text-gray-800 leading-tight">Все сервисы и продукты</div>
+                </div>
+                <div onclick="showToast('Кэшбэк и привилегии', 'Открытие раздела Альфа-Выгодно')" class="bg-white p-3 rounded-2xl shadow-alfa-card border border-gray-100 cursor-pointer hover:border-gray-300 transition">
+                    <div class="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mb-2 text-xs font-bold">А</div>
+                    <div class="text-[11px] font-medium text-gray-800 leading-tight">Кэшбэк и привилегии</div>
+                </div>
+            </div>
+            <div class="text-[11px] text-gray-400 mt-3 px-1">Предыдущая версия</div>
+        </div>
+    </aside>
+
+    <!-- ОСНОВНАЯ ЧАСТЬ ЭКРАНА -->
+    <div class="flex-1 flex flex-col min-w-0 lg:h-screen lg:overflow-hidden">
+
+        <!-- ВЕРХНЯЯ ШАПКА КАБИНЕТА -->
+        <header class="h-16 px-4 lg:px-8 flex items-center justify-between border-b border-gray-200/70 bg-[#F3F4F6]/90 backdrop-blur-sm sticky top-0 z-20 shrink-0">
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span>Мои сервисы</span>
+                <span>/</span>
+                <span class="font-semibold text-gray-900">Новостной советник и ИИ-рекомендации</span>
+            </div>
+
+            <div class="flex items-center gap-4 lg:gap-5">
+                <div class="flex items-center gap-3 text-gray-500">
+                    <button onclick="showToast('Календарь событий', 'Налоговый и финансовый календарь компании')" class="hover:text-gray-800 transition" title="Календарь">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </button>
+                    <button onclick="showToast('Сообщения от банка', 'У вас 2 новых уведомления')" class="hover:text-gray-800 transition" title="Письма">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </button>
+                    <button onclick="showToast('Уведомления', '2 важных сигнала по вашим счетам и ОКВЭД')" class="relative hover:text-gray-800 transition" title="Уведомления">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span class="w-2 h-2 rounded-full bg-alfa-red absolute -top-0.5 -right-0.5"></span>
+                    </button>
+                </div>
+
+                <!-- Профиль демо-компании -->
+                <div onclick="openProfileModal()" class="flex items-center gap-3 pl-3 border-l border-gray-300 cursor-pointer hover:opacity-80 transition">
+                    <div class="text-right">
+                        <div class="text-xs font-bold text-gray-900 leading-tight">ООО «Вектор-Логистик Про»</div>
+                        <div class="text-[11px] text-gray-500 leading-tight">Воронцов А.В. • ИНН 7799014820</div>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-600 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- РАБОЧАЯ ОБЛАСТЬ МИКРОСЕРВИСА -->
+        <main id="mainScrollContainer" class="flex-1 overflow-y-auto px-4 lg:px-8 py-6 w-full space-y-5">
+
+            <!-- ШАПКА МИКРОСЕРВИСА -->
+            <section class="bg-white rounded-2xl p-6 shadow-alfa-card border border-gray-100">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-5 border-b border-gray-100">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-alfa-red border border-red-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-alfa-red"></span>
+                                Альфа-Интеллект для бизнеса
+                            </span>
+                            <span class="text-xs text-gray-500 font-medium bg-gray-100 px-2.5 py-0.5 rounded-full">
+                                Демо-профиль: ООО «Вектор-Логистик Про» • ОКВЭД 49.41, 46.69 • Логистика и ВЭД
+                            </span>
+                        </div>
+                        <h1 class="text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">
+                            Персонализированные сводки новостей и рекомендации
+                        </h1>
+                        <p class="text-xs lg:text-sm text-gray-500 mt-1">
+                            Нажмите на любую новостную сводку ниже, чтобы раскрыть последовательный разбор для вашей компании:
+                            <strong class="text-gray-700 font-semibold">1. Сводка ➔ 2. Анализ влияния ➔ 3. Рекомендации.</strong>
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 shrink-0">
+                        <div class="flex items-center gap-1.5 text-xs text-gray-500 sm:mr-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>Обновлено 5 мин назад</span>
+                        </div>
+                        <button onclick="simulateRefreshFeed()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-800 font-semibold text-xs border border-gray-200 shadow-sm transition flex items-center gap-1.5">
+                            <svg id="refreshIcon" class="w-3.5 h-3.5 text-gray-500 transition-transform duration-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Обновить сводку
+                        </button>
+                        <button onclick="openProfileModal()" class="px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold text-xs shadow-sm transition flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                            Настроить источники
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Сводные метрики -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 pt-5">
+                    <div class="bg-[#F9FAFB] rounded-xl p-4 border border-gray-100">
+                        <div class="text-xs text-gray-500">Персональных сводок сегодня</div>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span class="text-xl font-bold text-gray-900">5 статей</span>
+                            <span class="text-[11px] font-medium text-gray-400">из 140+ источников</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#F9FAFB] rounded-xl p-4 border border-gray-100">
+                        <div class="text-xs text-gray-500">Требуют быстрой реакции</div>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span class="text-xl font-bold text-alfa-red">2 сводки</span>
+                            <span class="text-[11px] font-medium text-gray-400">высокий приоритет</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#F9FAFB] rounded-xl p-4 border border-gray-100">
+                        <div class="text-xs text-gray-500">Расчётный потенциал выгоды</div>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span class="text-xl font-bold text-emerald-600">+625 600 ₽</span>
+                            <span class="text-[11px] font-medium text-gray-400">субсидии и ставки</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#F9FAFB] rounded-xl p-4 border border-gray-100">
+                        <div class="text-xs text-gray-500">Выполнено рекомендаций</div>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span id="completedCounterMetric" class="text-xl font-bold text-gray-900">0 из 9</span>
+                            <span class="text-[11px] font-medium text-gray-400">действий</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ПАНЕЛЬ ФИЛЬТРАЦИИ И ПОИСКА -->
+            <section class="bg-white rounded-2xl p-3.5 shadow-alfa-card border border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+                    <button onclick="filterNews('all')" id="filter-all" class="filter-chip px-3.5 py-2 rounded-xl text-xs font-semibold bg-gray-900 text-white transition whitespace-nowrap">
+                        Все сводки (5)
+                    </button>
+                    <button onclick="filterNews('high')" id="filter-high" class="filter-chip px-3.5 py-2 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200/70 text-gray-700 transition whitespace-nowrap flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-alfa-red"></span>
+                        Критическое влияние (2)
+                    </button>
+                    <button onclick="filterNews('opportunity')" id="filter-opportunity" class="filter-chip px-3.5 py-2 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200/70 text-gray-700 transition whitespace-nowrap">
+                        Субсидии и выгода (2)
+                    </button>
+                    <button onclick="filterNews('contractors')" id="filter-contractors" class="filter-chip px-3.5 py-2 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200/70 text-gray-700 transition whitespace-nowrap">
+                        Контрагенты и логистика (1)
+                    </button>
+                </div>
+
+                <div class="relative w-full md:w-80">
+                    <input id="newsSearchInput" oninput="handleSearch()" type="text" placeholder="Поиск по теме, ИНН или закону..." class="w-full bg-[#F3F4F6] focus:bg-white text-xs text-gray-800 rounded-xl pl-9 pr-3.5 py-2.5 border border-transparent focus:border-gray-300 focus:outline-none transition">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+            </section>
+
+            <!-- СПИСОК НОВОСТНЫХ СВОДОК -->
+            <section id="newsFeedContainer" class="space-y-3 pb-10">
+                <!-- Генерируется через JS -->
+            </section>
+
+        </main>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЙКИ ИСТОЧНИКОВ -->
+    <div id="profileModal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-[2px] z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100">
+            <div class="flex items-start justify-between gap-4 pb-4 border-b border-gray-100">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-alfa-red">Параметры мониторинга</span>
+                    <h3 class="text-lg font-bold text-gray-900 mt-0.5">Демо-профиль: ООО «Вектор-Логистик Про»</h3>
+                </div>
+                <button onclick="closeProfileModal()" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-bold">✕</button>
+            </div>
+
+            <div class="py-4 space-y-3 text-xs text-gray-600">
+                <div class="bg-gray-50 rounded-xl p-3.5 border border-gray-200/80 space-y-1.5">
+                    <div class="font-bold text-gray-900">Учитываемые реквизиты компании:</div>
+                    <div>• ИНН: <span class="font-mono text-gray-800">7799014820</span> • Руководитель: Воронцов А.В.</div>
+                    <div>• Основной ОКВЭД: <span class="font-semibold text-gray-800">49.41</span> (Деятельность автомобильного грузового транспорта)</div>
+                    <div>• Доп. ОКВЭД: <span class="font-semibold text-gray-800">46.69</span> (Оптовая торговля прочими машинами и оборудованием)</div>
+                    <div>• Активные продукты: Рублёвый счёт ••7672, Валютный счёт CNY ••9901, Карта ••5123</div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
+                <button onclick="closeProfileModal()" class="px-4 py-2 rounded-xl bg-alfa-red hover:bg-alfa-redHover text-white font-semibold text-xs transition">
+                    Сохранить и закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЕ (ТОСТ) -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 translate-y-4 opacity-0">
+        <div class="bg-gray-900 text-white px-4 py-3.5 rounded-2xl shadow-xl border border-gray-700 flex items-center gap-3 max-w-md">
+            <div class="w-8 h-8 rounded-xl bg-alfa-red flex items-center justify-center shrink-0 font-bold text-sm">✓</div>
+            <div>
+                <div id="toastTitle" class="text-xs font-bold">Операция выполнена</div>
+                <div id="toastDesc" class="text-[11px] text-gray-300 mt-0.5">Переход в соответствующий модуль Альфа-Бизнес</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const newsData = [
+            {
+                id: 'news-1',
+                category: 'high',
+                categoryLabel: 'Кредиты и ставки',
+                importance: 'high',
+                importanceLabel: 'Критическое влияние',
+                date: 'Сегодня, 11:20',
+                source: 'Банк России / РБК',
+                title: 'Сигнал ЦБ РФ о пересмотре ставок по корпоративным кредитам со следующего месяца',
+                shortHook: 'Касается предодобренного лимита оборотного кредитования вашей компании на 5 000 000 ₽ под льготные 1,9%',
+                financialEffect: 'Экономия до 215 000 ₽',
+                effectType: 'positive',
+                matchTags: ['Счёт ••7672', 'Кредитный лимит 5 000 000 ₽', 'Ставка 1,9%'],
+                step1_summary: {
+                    tldr: 'Банк России совместно с уполномоченными банками объявил о завершении текущего окна субсидирования оборотных кредитов для транспортно-логистических компаний со следующего месяца. По новым заявкам базовая ставка будет рассчитываться по обновлённой формуле.',
+                    keyPoints: [
+                        'Предодобренные лимиты со ставкой 1,9% сохраняют силу только при фиксации заявки до конца текущего расчётного периода.',
+                        'Для компаний с ОКВЭД 49.41 доступно целевое использование средств на ГСМ, лизинг и расчёты с подрядчиками.',
+                        'Оформление происходит онлайн в кабинете Альфа-Бизнес без визита в отделение.'
+                    ],
+                    relevanceReason: 'У ООО «Вектор-Логистик Про» открыто предодобренное предложение «Кредит для бизнеса» на 5 000 000 ₽ под 1,9% на весь срок. Фиксация условий до пересмотра ставок сохранит минимальную переплату.'
+                },
+                step2_analysis: {
+                    impactScore: 'Высокий положительный эффект при фиксации лимита',
+                    impactColor: 'emerald',
+                    estimatedValue: '+215 000 ₽',
+                    valueSubtitle: 'Прямая экономия на процентных платежах за 12 месяцев',
+                    breakdown: [
+                        { label: 'Предодобренная сумма в Альфа-Бизнес', value: '5 000 000 ₽', note: 'Доступно к зачислению на счёт ••7672 сегодня' },
+                        { label: 'Текущая персональная ставка', value: '1,9% годовых', note: 'Фиксируется на весь срок договора' },
+                        { label: 'Прогнозная ставка после пересмотра условий', value: '6,2% годовых', note: 'Разница в обслуживании долга составит ~215 000 ₽/год' }
+                    ],
+                    affectedEntities: [
+                        { type: 'Кредитное предложение', name: 'Кредит для бизнеса • 5 000 000 ₽', detail: 'Ставка 1,9% на весь срок', status: 'Готово к фиксации' },
+                        { type: 'Расчётный счёт', name: 'Рублёвый счёт ••7672', detail: 'Текущий остаток: 207 590,00 ₽', status: 'Счёт зачисления' }
+                    ]
+                },
+                step3_recommendations: [
+                    {
+                        id: 'rec-1',
+                        priority: 'Шаг 1 • Срочно',
+                        title: 'Зафиксировать ставку 1,9% по предодобренному лимиту 5 000 000 ₽',
+                        description: 'Бронирование условий не обязывает к немедленной выборке всей суммы, но сохраняет за ООО «Вектор-Логистик Про» льготную ставку на 30 дней.',
+                        timeEstimate: '1 минута',
+                        ctaText: 'Зафиксировать ставку 1,9%',
+                        bankModule: 'Кредиты для бизнеса'
+                    },
+                    {
+                        id: 'rec-2',
+                        priority: 'Шаг 2 • Рекомендуется',
+                        title: 'Настроить автопогашение с рублёвого счёта ••7672',
+                        description: 'Позволит избежать технических просрочек и сохранить льготный ковенант по обороту.',
+                        timeEstimate: '1 минута',
+                        ctaText: 'Подключить автоплатёж',
+                        bankModule: 'Платежи по шаблону'
+                    }
+                ]
+            },
+            {
+                id: 'news-2',
+                category: 'opportunity',
+                categoryLabel: 'Субсидии и выгода',
+                importance: 'opportunity',
+                importanceLabel: 'Субсидии и выгода',
+                date: 'Сегодня, 09:45',
+                source: 'Департамент предпринимательства',
+                title: 'Открыт приём заявок на компенсацию до 50% затрат на логистику и склад для компаний МСП',
+                shortHook: 'По вашему ОКВЭД и выписке найдено 14 подходящих транспортных платежей на сумму 684 200 ₽',
+                financialEffect: 'Возврат +342 100 ₽',
+                effectType: 'positive',
+                matchTags: ['ОКВЭД 49.41', '14 платежей в выписке', 'ООО «СеверТрансАвто»'],
+                step1_summary: {
+                    tldr: 'Региональный фонд поддержки бизнеса запустил приём цифровых заявок на возмещение до 50% документально подтверждённых затрат на грузоперевозки, аренду складских терминалов и спецтехники.',
+                    keyPoints: [
+                        'Максимальная сумма субсидии по одному ИНН — до 1 500 000 ₽ за квартал.',
+                        'Принимаются безналичные платежи за последние 6 месяцев, лишённые признаков сомнительности.',
+                        'Справка об оборотах и реестр платёжных поручений подаются с ЭЦП банка.'
+                    ],
+                    relevanceReason: 'Основной вид деятельности ООО «Вектор-Логистик Про» (ОКВЭД 49.41) входит в приоритетный перечень. В вашей выписке по счёту ••7672 обнаружено 14 целевых платежей.'
+                },
+                step2_analysis: {
+                    impactScore: 'Прямой возврат средств на расчётный счёт',
+                    impactColor: 'emerald',
+                    estimatedValue: '+342 100 ₽',
+                    valueSubtitle: '50% от подтверждённых логистических расходов за квартал',
+                    breakdown: [
+                        { label: 'Найдено целевых платежей в выписке', value: '684 200 ₽', note: '14 платёжных поручений за 3 квартал' },
+                        { label: 'Процент бюджетной компенсации', value: '50%', note: 'Для действующих логистических операторов' },
+                        { label: 'Расчётная сумма к зачислению', value: '+342 100 ₽', note: 'Срок рассмотрения реестра — 10 рабочих дней' }
+                    ],
+                    affectedEntities: [
+                        { type: 'Подрядчик в выписке', name: 'ООО «СеверТрансАвто»', detail: '9 платежей на сумму 460 000 ₽', status: 'Подходит под субсидию' },
+                        { type: 'Подрядчик в выписке', name: 'ООО «СпецТехПром»', detail: '5 платежей на сумму 224 200 ₽', status: 'Подходит под субсидию' }
+                    ]
+                },
+                step3_recommendations: [
+                    {
+                        id: 'rec-3',
+                        priority: 'Шаг 1 • Документы',
+                        title: 'Сформировать спецвыписку по 14 логистическим платежам с ЭЦП банка',
+                        description: 'Система автоматически отфильтрует платежи в адрес ООО «СеверТрансАвто» и ООО «СпецТехПром» и приложит печать банка.',
+                        timeEstimate: '30 секунд',
+                        ctaText: 'Сформировать выписку для субсидии',
+                        bankModule: 'Выписка'
+                    },
+                    {
+                        id: 'rec-4',
+                        priority: 'Шаг 2 • Заявка',
+                        title: 'Отправить предзаполненную анкету через сервис Госзакупки и Субсидии',
+                        description: 'Реквизиты ООО «Вектор-Логистик Про» (ИНН 7799014820) подставятся автоматически.',
+                        timeEstimate: '2 минуты',
+                        ctaText: 'Перейти к отправке заявки',
+                        bankModule: 'Госзакупки'
+                    }
+                ]
+            },
+            {
+                id: 'news-3',
+                category: 'high',
+                categoryLabel: 'Валютный контроль и ФНС',
+                importance: 'high',
+                importanceLabel: 'Критическое влияние',
+                date: 'Вчера, 17:15',
+                source: 'ФТС России / ФНС',
+                title: 'Сокращены сроки сверки сведений о валютных операциях (ВО) и деклараций на товары',
+                shortHook: 'В кабинете ожидает отправки 1 черновик сведений о ВО по октябрьской поставке оборудования',
+                financialEffect: 'Защита от штрафа 50 000 ₽',
+                effectType: 'warning',
+                matchTags: ['Сведения о ВО', 'Guangzhou Tech Components Ltd', 'Импорт'],
+                step1_summary: {
+                    tldr: 'ФТС и уполномоченные банки перешли на ускоренный обмен данными по импортным контрактам. При расхождении кодов в инвойсе и справке о валютной операции уведомление формируется автоматически в течение 3 рабочих дней.',
+                    keyPoints: [
+                        'Несвоевременное предоставление сведений о ВО влечёт предупреждение или штраф по ст. 15.25 КоАП РФ.',
+                        'В вашем разделе «Предоставить сведения о ВО» находится 1 неподписанный документ по поставке комплектующих.',
+                        'Крайний срок подачи без нарушения регламента — завтра до 18:00 МСК.'
+                    ],
+                    relevanceReason: 'ООО «Вектор-Логистик Про» ведёт внешнеэкономическую деятельность (ОКВЭД 46.69) и имеет открытый контракт с Guangzhou Tech Components Ltd.'
+                },
+                step2_analysis: {
+                    impactScore: 'Предотвращение комплаенс-риска и штрафа',
+                    impactColor: 'amber',
+                    estimatedValue: '50 000 ₽',
+                    valueSubtitle: 'Исключение штрафа по ст. 15.25 КоАП РФ и задержки груза',
+                    breakdown: [
+                        { label: 'Контракт на контроле', value: '185 000 ¥', note: 'Поставщик: Guangzhou Tech Components Ltd' },
+                        { label: 'Статус документа в банке', value: 'Черновик №44-ВО', note: 'Ожидает подписи руководителя Воронцова А.В.' },
+                        { label: 'Осталось времени до дедлайна', value: '26 часов', note: 'Проверка комплаенса займёт ~15 минут' }
+                    ],
+                    affectedEntities: [
+                        { type: 'Зарубежный контрагент', name: 'Guangzhou Tech Components Ltd', detail: 'Инвойс №GZ-2026/104 от 14.10', status: 'Требует сведений о ВО' },
+                        { type: 'Банковский модуль', name: 'Предоставить сведения о ВО', detail: '1 документ в очереди на подпись', status: 'Ожидает действия' }
+                    ]
+                },
+                step3_recommendations: [
+                    {
+                        id: 'rec-5',
+                        priority: 'Шаг 1 • Срочно',
+                        title: 'Подписать и отправить черновик «Сведений о валютной операции»',
+                        description: 'Все коды вида операции (11100) уже проверены ИИ-ассистентом по загруженному инвойсу.',
+                        timeEstimate: '1 минута',
+                        ctaText: 'Предоставить сведения о ВО',
+                        bankModule: 'Валютный контроль'
+                    },
+                    {
+                        id: 'rec-6',
+                        priority: 'Шаг 2 • Автоматизация',
+                        title: 'Включить автозаполнение справок ВО на основе таможенных деклараций',
+                        description: 'Позволит автоматически формировать черновики при поступлении ДТ из базы ФТС.',
+                        timeEstimate: '30 секунд',
+                        ctaText: 'Включить автосверку ФТС',
+                        bankModule: 'Документооборот'
+                    }
+                ]
+            },
+            {
+                id: 'news-4',
+                category: 'opportunity',
+                categoryLabel: 'Оптимизация расчётов',
+                importance: 'opportunity',
+                importanceLabel: 'Оптимизация расчётов',
+                date: '19 октября',
+                source: 'Аналитика Альфа-Бизнес',
+                title: 'Повышенный кэшбэк 5% по корпоративным картам в категориях «АЗС, Топливо и Автосервис»',
+                shortHook: 'Перевод топливных платежей с расчётного счёта на карту Альфа-Бизнес ••5123 принесёт +68 500 ₽/год',
+                financialEffect: '+68 500 ₽ кэшбэка',
+                effectType: 'positive',
+                matchTags: ['Карта Альфа-Бизнес ••5123', 'Кэшбэк до 5%', 'Тариф Удачный выбор'],
+                step1_summary: {
+                    tldr: 'В рамках программы лояльности для клиентов на тарифе «Удачный выбор» увеличен лимит возврата бонусных баллов (1 балл = 1 ₽) за оплату ГСМ, платных дорог и сервисного обслуживания коммерческого транспорта по бизнес-картам.',
+                    keyPoints: [
+                        'Ставка кэшбэка 5% действует при оплате корпоративной картой Альфа-Бизнес ••5123.',
+                        'Начисление происходит живыми рублями в разделе «Кэшбэк и привилегии» ежемесячно.',
+                        'Чеки автоматически подгружаются в бухгалтерию и учитываются в расходах.'
+                    ],
+                    relevanceReason: 'Сейчас ООО «Вектор-Логистик Про» оплачивает часть ГСМ по обычным счетам без кэшбэка (~114 000 ₽/мес). Перевод этих оплат на карту ••5123 даст чистую выгоду.'
+                },
+                step2_analysis: {
+                    impactScore: 'Дополнительный доход без изменения объёма трат',
+                    impactColor: 'emerald',
+                    estimatedValue: '+68 500 ₽ / год',
+                    valueSubtitle: 'Возврат 5% с регулярных расходов автопарка',
+                    breakdown: [
+                        { label: 'Текущие траты компании на ГСМ и сервис', value: '114 200 ₽ / мес', note: 'По данным выписки рублёвого счёта ••7672' },
+                        { label: 'Ставка возврата по карте ••5123', value: '5% баллами (1:1 в ₽)', note: 'Категория «Топливо и коммерческий транспорт»' },
+                        { label: 'Ежемесячный возврат живыми деньгами', value: '+5 710 ₽ / мес', note: '68 520 ₽ в пересчёте на год' }
+                    ],
+                    affectedEntities: [
+                        { type: 'Корпоративная карта', name: 'Альфа-Бизнес ••5123', detail: 'Привязана к рублёвому счёту ••7672', status: 'Доступно 5% кэшбэка' }
+                    ]
+                },
+                step3_recommendations: [
+                    {
+                        id: 'rec-7',
+                        priority: 'Шаг 1 • Выгода',
+                        title: 'Активировать любимую категорию «АЗС и Автосервис 5%» по карте ••5123',
+                        description: 'Подключение категории бесплатно в рамках вашего тарифа «Удачный выбор».',
+                        timeEstimate: '30 секунд',
+                        ctaText: 'Активировать кэшбэк 5%',
+                        bankModule: 'Кэшбэк и привилегии'
+                    },
+                    {
+                        id: 'rec-8',
+                        priority: 'Шаг 2 • Карты',
+                        title: 'Выпустить бесплатную цифровую карту для начальника транспортного отдела',
+                        description: 'Карта будет доступна уже через 60 секунд с дневным лимитом только на оплату ГСМ.',
+                        timeEstimate: '1 минута',
+                        ctaText: 'Заказать цифровую карту',
+                        bankModule: 'Карты'
+                    }
+                ]
+            },
+            {
+                id: 'news-5',
+                category: 'contractors',
+                categoryLabel: 'Контрагенты и логистика',
+                importance: 'medium',
+                importanceLabel: 'Мониторинг контрагентов',
+                date: '18 октября',
+                source: 'ФНС / Сервис проверки контрагентов',
+                title: 'Обновление налогового рейтинга подрядчиков в сфере складской и агрологистики',
+                shortHook: 'Рекомендуется обновить досье должной осмотрительности по заказчику ООО «АгроСинтез-Юг» перед подписанием нового акта',
+                financialEffect: 'Защита вычета НДС',
+                effectType: 'positive',
+                matchTags: ['ООО «АгроСинтез-Юг»', 'Контрагенты', 'Документооборот'],
+                step1_summary: {
+                    tldr: 'ФНС обновила открытые витрины данных по среднесписочной численности и налоговой нагрузке компаний логистического и аграрного сектора за минувший период.',
+                    keyPoints: [
+                        'Для сохранения безопасного вычета по НДС рекомендуется хранить актуальное досье контрагента на дату сделки.',
+                        'По вашему покупателю ООО «АгроСинтез-Юг» в разделе «Документооборот» готовится закрывающий акт на 420 000 ₽.'
+                    ],
+                    relevanceReason: 'Автоматическая выгрузка заверенного отчёта из модуля «Контрагенты» в один клик прикрепит лист должной осмотрительности к договору с ООО «АгроСинтез-Юг».'
+                },
+                step2_analysis: {
+                    impactScore: 'Снижение налоговых рисков по ст. 54.1 НК РФ',
+                    impactColor: 'emerald',
+                    estimatedValue: '84 000 ₽ НДС',
+                    valueSubtitle: 'Сумма вычета НДС по текущему акту, защищённая досье осмотрительности',
+                    breakdown: [
+                        { label: 'Сумма закрывающего акта в ЭДО', value: '420 000 ₽', note: 'Контрагент: ООО «АгроСинтез-Юг»' },
+                        { label: 'Статус контрагента по светофору банка', value: 'Зелёный (Надёжный)', note: 'Исков и блокировок счетов не обнаружено' },
+                        { label: 'Дата последнего обновления досье', value: '4 месяца назад', note: 'Рекомендуется освежить выписку ЕГРЮЛ' }
+                    ],
+                    affectedEntities: [
+                        { type: 'Заказчик', name: 'ООО «АгроСинтез-Юг»', detail: 'ИНН 2310994812 • Договор экспедиции №18-Э', status: 'Требует обновления досье' }
+                    ]
+                },
+                step3_recommendations: [
+                    {
+                        id: 'rec-9',
+                        priority: 'Шаг 1 • Комплаенс',
+                        title: 'Скачать заверенное банком досье проверки ООО «АгроСинтез-Юг»',
+                        description: 'Отчёт автоматически сохранится в архиве «Документооборот» вместе с подписанным УПД.',
+                        timeEstimate: '30 секунд',
+                        ctaText: 'Сформировать досье контрагента',
+                        bankModule: 'Контрагенты'
+                    }
+                ]
+            }
+        ];
+
+        let activeNewsId = null;
+        let stepByNewsId = {};
+        let completedRecs = new Set();
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            newsData.forEach(item => {
+                stepByNewsId[item.id] = 1;
+            });
+            renderFeedList();
+        });
+
+        // Логика для Веррити
+        function toggleVeritySpeech(event) {
+            event.stopPropagation();
+            const bubble = document.getElementById('veritySpeechBubble');
+            if (bubble) {
+                bubble.classList.toggle('hidden');
+            }
+        }
+
+        function closeVeritySpeech(event) {
+            const bubble = document.getElementById('veritySpeechBubble');
+            const char = document.getElementById('verityChar');
+            if (bubble && !bubble.classList.contains('hidden') && !char.contains(event.target)) {
+                bubble.classList.add('hidden');
+            }
+        }
+
+        function getFilteredNews() {
+            return newsData.filter(item => {
+                const matchesFilter =
+                    currentFilter === 'all' ||
+                    (currentFilter === 'high' && item.importance === 'high') ||
+                    (currentFilter === 'opportunity' && item.importance === 'opportunity') ||
+                    (currentFilter === 'contractors' && item.category === 'contractors');
+
+                const q = searchQuery.trim().toLowerCase();
+                const matchesSearch = !q ||
+                    item.title.toLowerCase().includes(q) ||
+                    item.shortHook.toLowerCase().includes(q) ||
+                    item.matchTags.some(t => t.toLowerCase().includes(q));
+
+                return matchesFilter && matchesSearch;
+            });
+        }
+
+        function filterNews(filterKey) {
+            currentFilter = filterKey;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                btn.className = 'filter-chip px-3.5 py-2 rounded-xl text-xs font-medium bg-gray-100 hover:bg-gray-200/70 text-gray-700 transition whitespace-nowrap flex items-center gap-1.5';
+            });
+            const activeBtn = document.getElementById(`filter-${filterKey}`);
+            if (activeBtn) {
+                activeBtn.className = 'filter-chip px-3.5 py-2 rounded-xl text-xs font-semibold bg-gray-900 text-white transition whitespace-nowrap flex items-center gap-1.5';
+            }
+            renderFeedList();
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('newsSearchInput');
+            searchQuery = input ? input.value : '';
+            renderFeedList();
+        }
+
+        function getBadgeStyles(importance) {
+            if (importance === 'high') return 'bg-red-50 text-alfa-red border-red-200/80';
+            if (importance === 'opportunity') return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+            return 'bg-amber-50 text-amber-800 border-amber-200/80';
+        }
+
+        function getEffectBadgeStyles(effectType) {
+            if (effectType === 'positive') return 'bg-emerald-50 text-emerald-700 border border-emerald-200/70';
+            return 'bg-amber-50 text-amber-800 border border-amber-200/70';
+        }
+
+        function renderFeedList() {
+            const container = document.getElementById('newsFeedContainer');
+            const filtered = getFilteredNews();
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-10 text-center border border-gray-100 shadow-alfa-card">
+                        <div class="text-sm font-bold text-gray-800">По вашему запросу сводок не найдено</div>
+                        <p class="text-xs text-gray-500 mt-1">Попробуйте сбросить фильтры или изменить поисковый запрос</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => {
+                const isOpen = activeNewsId === item.id;
+                const currentStep = stepByNewsId[item.id] || 1;
+
+                return `
+                    <article id="card-${item.id}" class="bg-white rounded-2xl border ${isOpen ? 'border-gray-900/30 shadow-alfa-hover' : 'border-gray-100 shadow-alfa-card hover:border-gray-300'} transition-all duration-200">
+                        <div onclick="toggleNewsCard('${item.id}')" class="p-5 lg:px-6 cursor-pointer select-none">
+                            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div class="space-y-1.5 flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${getBadgeStyles(item.importance)}">
+                                            ${item.importanceLabel}
+                                        </span>
+                                        <span class="text-xs text-gray-400 font-medium">${item.date} • ${item.source}</span>
+                                        <span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-700">
+                                            Шаг разбора: <strong id="step-indicator-${item.id}">${currentStep} из 3</strong>
+                                        </span>
+                                    </div>
+
+                                    <h2 class="text-[15px] lg:text-[16px] font-bold text-gray-900 leading-snug">
+                                        ${item.title}
+                                    </h2>
+                                    <p class="text-xs lg:text-[13px] text-gray-500 leading-relaxed">
+                                        ${item.shortHook}
+                                    </p>
+                                </div>
+
+                                <div class="flex items-center justify-between lg:justify-end gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100">
+                                    <span class="px-3 py-1.5 rounded-xl text-xs font-bold ${getEffectBadgeStyles(item.effectType)}">
+                                        ${item.financialEffect}
+                                    </span>
+                                    <button type="button" id="toggle-btn-${item.id}" class="px-3.5 py-2 rounded-xl text-xs font-semibold border ${isOpen ? 'bg-gray-900 text-white border-gray-900' : 'bg-white hover:bg-gray-50 text-gray-800 border-gray-200'} transition flex items-center gap-1.5">
+                                        <span id="toggle-text-${item.id}">${isOpen ? 'Свернуть' : 'Развернуть'}</span>
+                                        <svg id="toggle-chevron-${item.id}" class="w-3.5 h-3.5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="accordion-${item.id}" class="accordion-grid ${isOpen ? 'open' : ''}">
+                            <div class="accordion-inner">
+                                <div class="px-5 lg:px-6 pb-6 pt-2 border-t border-gray-100 bg-[#FAFAFB] rounded-b-2xl">
+                                    <div id="tabs-bar-${item.id}" class="grid grid-cols-1 md:grid-cols-3 gap-2 p-1.5 bg-gray-200/70 rounded-xl mb-5">
+                                        ${renderStepTabsHtml(item.id, currentStep)}
+                                    </div>
+
+                                    <div id="step-box-${item.id}" class="step-content-box">
+                                        ${renderStepInnerHtml(item, currentStep)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function renderStepTabsHtml(newsId, currentStep) {
+            const steps = [
+                { num: 1, title: '1. Сводка новости', sub: 'Краткая суть и связь с компанией' },
+                { num: 2, title: '2. Анализ влияния на бизнес', sub: 'Финансовый расчёт и затронутые счета' },
+                { num: 3, title: '3. Рекомендации и действия', sub: 'Пошаговый план в Альфа-Бизнес' }
+            ];
+
+            return steps.map(s => {
+                const active = s.num === currentStep;
+                return `
+                    <button type="button" onclick="switchStep('${newsId}', ${s.num})" class="text-left px-3.5 py-2.5 rounded-lg transition-all ${active ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80' : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'}">
+                        <div class="text-xs font-bold flex items-center justify-between">
+                            <span>${s.title}</span>
+                            ${active ? '<span class="w-2 h-2 rounded-full bg-alfa-red"></span>' : ''}
+                        </div>
+                        <div class="text-[11px] text-gray-500 mt-0.5">${s.sub}</div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderStepInnerHtml(item, step) {
+            if (step === 1) {
+                return `
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-7 bg-white rounded-xl p-5 border border-gray-200/80 space-y-3">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Краткая выжимка события</div>
+                            <p class="text-sm text-gray-800 leading-relaxed font-medium">
+                                ${item.step1_summary.tldr}
+                            </p>
+                            <div class="space-y-2 pt-2">
+                                <div class="text-xs font-bold text-gray-900">Ключевые тезисы:</div>
+                                <ul class="space-y-1.5">
+                                    ${item.step1_summary.keyPoints.map(pt => `
+                                        <li class="flex items-start gap-2 text-xs text-gray-700 leading-relaxed">
+                                            <span class="w-4 h-4 rounded-full bg-red-50 text-alfa-red flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">•</span>
+                                            <span>${pt}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 flex flex-col justify-between gap-4">
+                            <div class="bg-red-50/60 rounded-xl p-5 border border-red-100 space-y-2">
+                                <div class="text-[11px] font-bold uppercase tracking-wider text-alfa-red">Почему это важно для ООО «Вектор-Логистик Про»</div>
+                                <p class="text-xs text-gray-800 leading-relaxed">
+                                    ${item.step1_summary.relevanceReason}
+                                </p>
+                                <div class="flex flex-wrap gap-1.5 pt-2">
+                                    ${item.matchTags.map(tag => `
+                                        <span class="px-2.5 py-1 rounded-lg bg-white text-gray-700 text-[11px] font-semibold border border-red-100">${tag}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button type="button" onclick="switchStep('${item.id}', 2)" class="px-4 py-2.5 rounded-xl bg-alfa-red hover:bg-alfa-redHover text-white font-semibold text-xs shadow-sm transition flex items-center gap-2">
+                                    <span>Далее: 2. Анализ влияния</span>
+                                    <span>→</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (step === 2) {
+                return `
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-7 bg-white rounded-xl p-5 border border-gray-200/80 space-y-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100">
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Оценка влияния на бизнес</span>
+                                    <div class="text-sm font-bold text-gray-900 mt-0.5">${item.step2_analysis.impactScore}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-emerald-600">${item.step2_analysis.estimatedValue}</div>
+                                    <div class="text-[11px] text-gray-500">${item.step2_analysis.valueSubtitle}</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                ${item.step2_analysis.breakdown.map(b => `
+                                    <div class="bg-[#F9FAFB] rounded-xl p-3.5 border border-gray-100">
+                                        <div class="text-[11px] text-gray-500">${b.label}</div>
+                                        <div class="text-sm font-bold text-gray-900 my-1">${b.value}</div>
+                                        <div class="text-[10.5px] text-gray-400">${b.note}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 bg-white rounded-xl p-5 border border-gray-200/80 flex flex-col justify-between gap-4">
+                            <div class="space-y-2.5">
+                                <div class="text-xs font-bold text-gray-900">Затронутые счета и контрагенты:</div>
+                                ${item.step2_analysis.affectedEntities.map(ent => `
+                                    <div class="p-3 rounded-xl bg-[#F9FAFB] border border-gray-100 flex items-center justify-between gap-3">
+                                        <div>
+                                            <div class="text-[10px] font-semibold uppercase text-gray-400">${ent.type}</div>
+                                            <div class="text-xs font-bold text-gray-900">${ent.name}</div>
+                                            <div class="text-[11px] text-gray-500">${ent.detail}</div>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white border border-gray-200 text-gray-700 shrink-0">
+                                            ${ent.status}
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                                <button type="button" onclick="switchStep('${item.id}', 1)" class="px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition">
+                                    ← Назад к сводке
+                                </button>
+                                <button type="button" onclick="switchStep('${item.id}', 3)" class="px-4 py-2.5 rounded-xl bg-alfa-red hover:bg-alfa-redHover text-white font-semibold text-xs shadow-sm transition flex items-center gap-2">
+                                    <span>Далее: 3. Рекомендации</span>
+                                    <span>→</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        ${item.step3_recommendations.map(rec => {
+                            const isDone = completedRecs.has(rec.id);
+                            return `
+                                <div class="bg-white rounded-xl p-5 border ${isDone ? 'border-emerald-300 bg-emerald-50/20' : 'border-gray-200/80'} flex flex-col justify-between gap-4 transition">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-red-50 text-alfa-red'}">
+                                                ${isDone ? '✓ Выполнено' : rec.priority}
+                                            </span>
+                                            <span class="text-[11px] text-gray-400 font-medium">Модуль: ${rec.bankModule} • ⏱ ${rec.timeEstimate}</span>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-900">${rec.title}</h4>
+                                        <p class="text-xs text-gray-600 leading-relaxed">${rec.description}</p>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
+                                        <label class="inline-flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleRecommendationDone('${rec.id}', '${item.id}')" class="rounded border-gray-300 text-alfa-red focus:ring-alfa-red">
+                                            <span>Отметить выполненным</span>
+                                        </label>
+                                        <button type="button" onclick="triggerBankAction('${rec.title}', '${rec.bankModule}', '${rec.id}', '${item.id}')" class="px-4 py-2 rounded-xl ${isDone ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-900 hover:bg-alfa-red'} text-white font-semibold text-xs transition shadow-sm">
+                                            ${isDone ? 'Повторить операцию' : rec.ctaText}
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="switchStep('${item.id}', 2)" class="px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition">
+                            ← Назад к анализу влияния
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleNewsCard(newsId) {
+            const prevId = activeNewsId;
+            activeNewsId = (prevId === newsId) ? null : newsId;
+
+            if (prevId && prevId !== newsId) {
+                updateSingleCardExpandedState(prevId, false);
+            }
+            if (activeNewsId) {
+                updateSingleCardExpandedState(activeNewsId, true);
+            } else if (prevId) {
+                updateSingleCardExpandedState(prevId, false);
+            }
+        }
+
+        function updateSingleCardExpandedState(newsId, isOpen) {
+            const accordion = document.getElementById(`accordion-${newsId}`);
+            const card = document.getElementById(`card-${newsId}`);
+            const btn = document.getElementById(`toggle-btn-${newsId}`);
+            const txt = document.getElementById(`toggle-text-${newsId}`);
+            const chevron = document.getElementById(`toggle-chevron-${newsId}`);
+
+            if (!accordion || !card) return;
+
+            if (isOpen) {
+                accordion.classList.add('open');
+                card.classList.add('border-gray-900/30', 'shadow-alfa-hover');
+                card.classList.remove('border-gray-100', 'shadow-alfa-card');
+                if (btn) btn.className = 'px-3.5 py-2 rounded-xl text-xs font-semibold border bg-gray-900 text-white border-gray-900 transition flex items-center gap-1.5';
+                if (txt) txt.textContent = 'Свернуть';
+                if (chevron) chevron.classList.add('rotate-180');
+            } else {
+                accordion.classList.remove('open');
+                card.classList.remove('border-gray-900/30', 'shadow-alfa-hover');
+                card.classList.add('border-gray-100', 'shadow-alfa-card');
+                if (btn) btn.className = 'px-3.5 py-2 rounded-xl text-xs font-semibold border bg-white hover:bg-gray-50 text-gray-800 border-gray-200 transition flex items-center gap-1.5';
+                if (txt) txt.textContent = 'Развернуть';
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+
+        function switchStep(newsId, stepNumber) {
+            stepByNewsId[newsId] = stepNumber;
+            const item = newsData.find(n => n.id === newsId);
+            if (!item) return;
+
+            const tabsBar = document.getElementById(`tabs-bar-${newsId}`);
+            const stepBox = document.getElementById(`step-box-${newsId}`);
+            const indicator = document.getElementById(`step-indicator-${newsId}`);
+
+            if (indicator) indicator.textContent = `${stepNumber} из 3`;
+            if (tabsBar) tabsBar.innerHTML = renderStepTabsHtml(newsId, stepNumber);
+
+            if (stepBox) {
+                stepBox.style.opacity = '0';
+                stepBox.style.transform = 'translateY(4px)';
+                setTimeout(() => {
+                    stepBox.innerHTML = renderStepInnerHtml(item, stepNumber);
+                    stepBox.style.opacity = '1';
+                    stepBox.style.transform = 'translateY(0)';
+                }, 120);
+            }
+        }
+
+        function toggleRecommendationDone(recId, newsId) {
+            if (completedRecs.has(recId)) {
+                completedRecs.delete(recId);
+            } else {
+                completedRecs.add(recId);
+            }
+            updateCompletedMetric();
+            const item = newsData.find(n => n.id === newsId);
+            if (item) {
+                const stepBox = document.getElementById(`step-box-${newsId}`);
+                if (stepBox) stepBox.innerHTML = renderStepInnerHtml(item, stepByNewsId[newsId] || 3);
+            }
+        }
+
+        function triggerBankAction(actionTitle, moduleName, recId, newsId) {
+            completedRecs.add(recId);
+            updateCompletedMetric();
+            const item = newsData.find(n => n.id === newsId);
+            if (item) {
+                const stepBox = document.getElementById(`step-box-${newsId}`);
+                if (stepBox) stepBox.innerHTML = renderStepInnerHtml(item, stepByNewsId[newsId] || 3);
+            }
+            showToast(`Модуль «${moduleName}»`, `Запущено действие: ${actionTitle}`);
+        }
+
+        function updateCompletedMetric() {
+            const el = document.getElementById('completedCounterMetric');
+            if (el) el.textContent = `${completedRecs.size} из 9`;
+        }
+
+        function simulateRefreshFeed() {
+            const icon = document.getElementById('refreshIcon');
+            if (icon) icon.classList.add('rotate-180');
+            showToast('Сводка обновлена', 'Проверены свежие публикации по профилю ООО «Вектор-Логистик Про»');
+            setTimeout(() => {
+                if (icon) icon.classList.remove('rotate-180');
+            }, 500);
+        }
+
+        function openProfileModal() {
+            const modal = document.getElementById('profileModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeProfileModal() {
+            const modal = document.getElementById('profileModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        let toastTimer = null;
+        function showToast(title, desc) {
+            const toast = document.getElementById('toastNotification');
+            const tTitle = document.getElementById('toastTitle');
+            const tDesc = document.getElementById('toastDesc');
+            if (!toast) return;
+
+            tTitle.textContent = title;
+            tDesc.textContent = desc;
+            toast.classList.remove('hidden', 'translate-y-4', 'opacity-0');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3400);
+        }
+    </script>
+</body>
+</html>
