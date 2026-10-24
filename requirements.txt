@@ -1,0 +1,13 @@
+fastapi==0.110.0
+uvicorn==0.28.0
+pydantic==2.6.4
+langchain==0.1.13
+langchain-community==0.0.29
+langchain-openai==0.0.8
+langgraph==0.0.30
+chromadb==0.4.24
+sentence-transformers==2.5.1
+pypdf==4.1.0
+python-docx==1.1.0
+gdown==5.1.0
+json-repair==0.16.0
